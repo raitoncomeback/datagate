@@ -1,0 +1,33 @@
+# Data ingestion
+requests==2.31.0
+praw==7.7.1
+pandas==2.2.0
+yfinance==1.5.1
+
+# Object storage
+boto3==1.34.0
+
+# Warehouse
+duckdb==0.10.3
+
+# dbt
+dbt-core==1.8.0
+dbt-duckdb==1.8.0
+
+# Quality gate
+great-expectations==0.18.15
+pydantic==2.6.0
+
+# AI enrichment
+google-genai
+
+# Advisor API
+fastapi==0.111.0
+uvicorn==0.29.0
+python-dotenv==1.0.1
+
+# Utilities
+tenacity==8.2.3
+loguru==0.7.2
+arrow==1.3.0
+beautifulsoup4==4.15.0

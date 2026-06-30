@@ -1,0 +1,22 @@
+# Secrets — never commit these
+.env
+*-key.json
+
+# DuckDB data files
+data/
+logs/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+
+# dbt
+dbt/target/
+dbt/.user.yml
+
+# OS
+.DS_Store
+Thumbs.db
