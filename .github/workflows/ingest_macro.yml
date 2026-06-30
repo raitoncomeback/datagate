@@ -31,6 +31,11 @@ jobs:
           git config user.email "datagate-bot@pipeline.local"
           git config user.name "DataGate Bot"
           git add data/duckdb/datagate.db
-          git diff --staged --quiet || git commit -m "auto: snapshot DuckDB after macro ingest $(Get-Date -Format 'yyyy-MM-dd HH:mm')"
-          git push
-          echo "DuckDB snapshot pushed"
+          $staged = git diff --staged --name-only
+          if ($staged) {
+            git commit -m "auto: snapshot DuckDB after ingest $(Get-Date -Format 'yyyy-MM-dd HH:mm')"
+            git push
+            echo "DuckDB snapshot pushed"
+          } else {
+            echo "No DuckDB changes to snapshot"
+          }
