@@ -17,7 +17,12 @@ from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_excep
 load_dotenv()
 
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
-MODEL_NAME = "gemini-3.5-flash"
+OPENROUTER_API_KEY = os.environ.get("OPENROUTER_API_KEY")
+
+# Primary model — switch to OpenRouter if Gemini daily quota exhausted
+USE_OPENROUTER = True   # set False to use Gemini instead
+OPENROUTER_MODEL = "openai/gpt-oss-120b:free"
+GEMINI_MODEL = "gemini-2.5-flash"
 # Free tier: 15 requests/minute. We process one record at a time (not
 # batched) since each quarantine reason is unique — small delay keeps
 # us safely under the rate limit.
@@ -43,10 +48,20 @@ a dashboard.
 Respond with ONLY the sentence, no preamble, no quotes, no markdown."""
 
 
-def init_gemini():
-    if not GEMINI_API_KEY or GEMINI_API_KEY == "your_gemini_api_key_here":
-        raise ValueError("GEMINI_API_KEY not set in .env")
-    return genai.Client(api_key=GEMINI_API_KEY)
+def init_client():
+    if USE_OPENROUTER:
+        from openai import OpenAI
+        if not OPENROUTER_API_KEY or OPENROUTER_API_KEY == "your_openrouter_key_here":
+            raise ValueError("OPENROUTER_API_KEY not set in .env")
+        return OpenAI(
+            base_url="https://openrouter.ai/api/v1",
+            api_key=OPENROUTER_API_KEY,
+        )
+    else:
+        from google import genai
+        if not GEMINI_API_KEY or GEMINI_API_KEY == "your_gemini_api_key_here":
+            raise ValueError("GEMINI_API_KEY not set in .env")
+        return genai.Client(api_key=GEMINI_API_KEY)
 
 @retry(
     stop=stop_after_attempt(5),
@@ -71,12 +86,19 @@ def explain_failure(client, source: str, failure_code: str, failure_detail: str,
         raw_record=raw_record_truncated,
     )
 
-    response = client.models.generate_content(
-        model=MODEL_NAME,
-        contents=prompt,
-    )
-    explanation = response.text.strip()
-
+    if USE_OPENROUTER:
+        response = client.chat.completions.create(
+            model=OPENROUTER_MODEL,
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.1,
+        )
+        raw = response.choices[0].message.content.strip()
+    else:
+        response = client.models.generate_content(
+            model=GEMINI_MODEL,
+            contents=prompt,
+        )
+        raw = response.text.strip()
     # Basic safety net — Gemini occasionally wraps in quotes despite instructions
     explanation = explanation.strip('"').strip("'")
 
@@ -91,7 +113,8 @@ def run():
     from src.utils.storage import get_duckdb_connection
 
     logger.info("Starting quarantine explainer...")
-    client = init_gemini()
+    client = init_client()
+    logger.info(f"Using {'OpenRouter (' + OPENROUTER_MODEL + ')' if USE_OPENROUTER else 'Gemini (' + GEMINI_MODEL + ')'}")
     conn = get_duckdb_connection()
 
 # BATCH_LIMIT caps how many records get processed in one run.
