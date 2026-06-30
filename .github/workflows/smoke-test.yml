@@ -25,5 +25,5 @@ jobs:
 
       - name: Check MinIO reachable
         run: |
-          curl -f http://localhost:9000/minio/health/live
-          echo "MinIO OK"
+          $response = Invoke-WebRequest -Uri http://localhost:9000/minio/health/live -UseBasicParsing
+          if ($response.StatusCode -eq 200) { echo "MinIO OK" } else { throw "MinIO not healthy" }
