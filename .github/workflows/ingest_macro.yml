@@ -1,0 +1,36 @@
+name: Weekly macro ingestion
+
+on:
+  schedule:
+    - cron: '0 4 * * 0'  # Sunday 9:30 AM IST
+  workflow_dispatch:
+
+jobs:
+  ingest:
+    runs-on: self-hosted
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Ingest macro data
+        working-directory: C:\Users\Asus\Desktop\Project\datagate
+        run: |
+          & "C:\Users\Asus\Desktop\Project\datagate\.venv\Scripts\python.exe" -m src.ingestion.macro
+          echo "Macro ingestion complete"
+
+      - name: Run quality gate
+        working-directory: C:\Users\Asus\Desktop\Project\datagate
+        run: |
+          & "C:\Users\Asus\Desktop\Project\datagate\.venv\Scripts\python.exe" -m src.gate.gate
+          echo "Gate run complete"
+
+      - name: Snapshot DuckDB to GitHub
+        working-directory: C:\Users\Asus\Desktop\Project\datagate
+        run: |
+          git config user.email "datagate-bot@pipeline.local"
+          git config user.name "DataGate Bot"
+          git add data/duckdb/datagate.db
+          git diff --staged --quiet || git commit -m "auto: snapshot DuckDB after macro ingest $(Get-Date -Format 'yyyy-MM-dd HH:mm')"
+          git push
+          echo "DuckDB snapshot pushed"
