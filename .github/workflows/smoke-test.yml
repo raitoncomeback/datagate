@@ -1,0 +1,29 @@
+name: Smoke test - runner and Docker access
+
+on:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: self-hosted
+
+    steps:
+      - name: Check Python
+        run: |
+          & "C:\Users\Asus\AppData\Local\Programs\Python\Python311\python.exe" --version
+          echo "Python OK"
+
+      - name: Check venv Python
+        run: |
+          & "C:\Users\Asus\Desktop\Project\datagate\.venv\Scripts\python.exe" --version
+          echo "venv Python OK"
+
+      - name: Check Docker access
+        run: |
+          & "C:\Program Files\Docker\Docker\resources\bin\docker.exe" ps
+          echo "Docker OK"
+
+      - name: Check MinIO reachable
+        run: |
+          curl -f http://localhost:9000/minio/health/live
+          echo "MinIO OK"
