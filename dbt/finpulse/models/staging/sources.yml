@@ -1,0 +1,18 @@
+version: 2
+
+sources:
+  - name: main
+    description: "Raw DataGate tables in DuckDB main schema"
+    tables:
+      - name: bronze_stocks
+        description: "NSE stock prices ingested via yfinance"
+      - name: bronze_news
+        description: "Indian financial news from NewsAPI"
+      - name: bronze_macro
+        description: "RBI macro indicators"
+      - name: enriched_news
+        description: "Gemini-enriched news with sentiment and market implication"
+      - name: gate_results
+        description: "Quality gate decisions — pass/fail per record"
+      - name: stock_anomalies
+        description: "Anomalous stock moves with Gemini explanations"

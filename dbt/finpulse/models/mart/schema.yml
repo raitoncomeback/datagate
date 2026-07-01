@@ -1,0 +1,16 @@
+version: 2
+
+models:
+  - name: mart_ticker_intelligence
+    description: "Gold layer — one row per ticker per day, AI-enriched, trust-gated"
+    columns:
+      - name: ticker
+        data_tests: [not_null]
+      - name: date
+        data_tests: [not_null]
+      - name: close
+        data_tests: [not_null]
+      - name: stocks_trust_score
+        data_tests: [not_null]
+      - name: advisor_can_serve
+        data_tests: [not_null]

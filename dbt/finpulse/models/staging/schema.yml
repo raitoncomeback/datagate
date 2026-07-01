@@ -1,0 +1,29 @@
+version: 2
+
+models:
+  - name: stg_stocks
+    description: "Cleaned NSE stock prices from bronze layer"
+    columns:
+      - name: ticker
+        data_tests: [not_null]
+      - name: date
+        data_tests: [not_null]
+      - name: close
+        data_tests: [not_null]
+
+  - name: stg_news
+    description: "Verified news articles joined with Gemini enrichment"
+    columns:
+      - name: article_id
+        data_tests: [not_null, unique]
+      - name: sentiment
+        data_tests:
+          - not_null
+          - accepted_values:
+              values: ['bullish', 'bearish', 'neutral']
+
+  - name: stg_macro
+    description: "RBI macro indicators"
+    columns:
+      - name: series_id
+        data_tests: [not_null]
