@@ -208,12 +208,6 @@ Sample response to "How is HDFC Bank looking today?":
 
 ---
 
-## Resume Bullet
-
-*Built DataGate — an end-to-end financial data pipeline with an AI quality gate protecting an AI financial advisor from corrupted inputs. Validates ~62 daily records across 3 Indian market sources (yfinance NSE, NewsAPI, RBI) against freshness, duplicate, schema, and range rules; quarantines failures with Gemini-generated root-cause explanations; computes a weighted daily trust score that automatically blocks compromised sources from the advisor. Transformed into a 7-model dbt gold mart (13 tests passing); served via FastAPI + Streamlit chat UI. Automated with GitHub Actions cron — ₹0/month infrastructure cost.*
-
----
-
 ## Author
 
 Built by [@raitoncomeback](https://github.com/raitoncomeback)
