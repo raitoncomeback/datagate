@@ -1,25 +1,8 @@
-# =============================================================================
-# dags/datagate_daily_pipeline.py
-# DataGate daily batch pipeline DAG
-# Runs every weekday at 6:30 PM IST after market close
-# Tasks: ingest → gate → enrich → dbt run → dbt test
-# =============================================================================
-
 from airflow import DAG
-from airflow.operators.python import PythonOperator
 from airflow.operators.bash import BashOperator
-from airflow.utils.dates import days_ago
 from airflow.models import Variable
-from datetime import datetime, timedelta
-import sys
-import os
-os.environ["OPENROUTER_API_KEY"] = Variable.get("OPENROUTER_API_KEY", default_var="")
-os.environ["NEWSAPI_KEY"] = Variable.get("NEWSAPI_KEY", default_var="")
-os.environ["GEMINI_API_KEY"] = Variable.get("GEMINI_API_KEY", default_var="")
-os.environ["MINIO_ENDPOINT"] = "http://minio:9000"
-os.environ["MINIO_ACCESS_KEY"] = "datagate"
-os.environ["MINIO_SECRET_KEY"] = "datagate123"
-sys.path.insert(0, '/opt/airflow')
+from airflow.utils.dates import days_ago
+from datetime import timedelta
 
 default_args = {
     'owner': 'datagate',
@@ -28,59 +11,42 @@ default_args = {
     'email_on_failure': False,
 }
 
+# Base command — runs Python from the project directory
+BASE = 'cd /opt/airflow && python -m'
+
 with DAG(
     dag_id='datagate_daily_pipeline',
     description='Daily batch pipeline: ingest → gate → enrich → dbt',
-    schedule_interval='0 13 * * 1-5',  # 6:30 PM IST weekdays
+    schedule_interval='0 13 * * 1-5',
     start_date=days_ago(1),
     catchup=False,
     tags=['datagate', 'batch', 'daily'],
     default_args=default_args,
 ) as dag:
 
-    def ingest_stocks():
-        from src.ingestion.stocks import run
-        run()
-
-    def ingest_news():
-        from src.ingestion.news import run
-        run()
-
-    def ingest_macro():
-        from src.ingestion.macro import run
-        run()
-
-    def run_gate():
-        from src.gate.gate import run
-        run()
-
-    def run_enrichment():
-        from src.enrichment.news_enricher import run
-        run()
-
-    t_stocks = PythonOperator(
+    t_stocks = BashOperator(
         task_id='ingest_stocks',
-        python_callable=ingest_stocks,
+        bash_command=f'{BASE} src.ingestion.stocks',
     )
 
-    t_news = PythonOperator(
+    t_news = BashOperator(
         task_id='ingest_news',
-        python_callable=ingest_news,
+        bash_command=f'{BASE} src.ingestion.news',
     )
 
-    t_macro = PythonOperator(
+    t_macro = BashOperator(
         task_id='ingest_macro',
-        python_callable=ingest_macro,
+        bash_command=f'{BASE} src.ingestion.macro',
     )
 
-    t_gate = PythonOperator(
+    t_gate = BashOperator(
         task_id='run_quality_gate',
-        python_callable=run_gate,
+        bash_command=f'{BASE} src.gate.gate',
     )
 
-    t_enrich = PythonOperator(
+    t_enrich = BashOperator(
         task_id='run_enrichment',
-        python_callable=run_enrichment,
+        bash_command=f'{BASE} src.enrichment.news_enricher',
     )
 
     t_dbt = BashOperator(
@@ -92,5 +58,4 @@ with DAG(
         ),
     )
 
-    # Task dependencies — sequential pipeline
     t_stocks >> t_news >> t_macro >> t_gate >> t_enrich >> t_dbt
