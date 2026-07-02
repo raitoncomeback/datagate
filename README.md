@@ -57,8 +57,11 @@ RBI (scraper)   ──→   trust score      ──→   anomaly det.   ──�
 
 **Scheduling:** GitHub Actions cron (self-hosted runner on local machine)  
 **Storage:** MinIO (object store) + DuckDB (analytical warehouse)  
-**Orchestration:** GitHub Actions workflows trigger each pipeline stage
-
+**Orchestration:** Apache Airflow (self-hosted via Docker Compose)  
+- `datagate_daily_pipeline` — 6-task DAG: ingest → gate → enrich → dbt  
+- `datagate_trust_monitor` — monitors trust scores, updates circuit breaker  
+- Scheduled daily at 6:30 PM IST on weekdays  
+- GitHub Actions retained for DuckDB snapshot to GitHub only
 ---
 
 ## Tech Stack

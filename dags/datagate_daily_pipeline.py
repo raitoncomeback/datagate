@@ -24,6 +24,9 @@ with DAG(
     default_args=default_args,
 ) as dag:
 
+    ENV = 'set -a && source /opt/airflow/.env && set +a'
+    BASE = f'{ENV} && cd /opt/airflow && python -m'
+
     t_stocks = BashOperator(
         task_id='ingest_stocks',
         bash_command=f'{BASE} src.ingestion.stocks',
@@ -52,11 +55,11 @@ with DAG(
     t_dbt = BashOperator(
         task_id='run_dbt_models',
         bash_command=(
-            'cd /opt/airflow/dbt/finpulse && '
+            f'{ENV} && cd /opt/airflow/dbt/finpulse && '
             'dbt run --profiles-dir /opt/airflow/dbt/finpulse && '
             'dbt test --profiles-dir /opt/airflow/dbt/finpulse'
         ),
     )
 
+    [t_stocks >> t_news, t_macro] >> t_gate >> t_enrich >> t_dbt
     # Stocks and news run sequentially, macro runs in parallel
-[t_stocks >> t_news, t_macro] >> t_gate >> t_enrich >> t_dbt

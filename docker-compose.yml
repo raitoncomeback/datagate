@@ -1,7 +1,9 @@
 version: "3.8"
 
 x-airflow-common: &airflow-common
-  image: apache/airflow:2.9.1-python3.11
+  build:
+    context: .
+    dockerfile: Dockerfile.airflow
   environment:
     AIRFLOW__CORE__EXECUTOR: LocalExecutor
     AIRFLOW__CORE__LOAD_EXAMPLES: "false"
@@ -29,8 +31,10 @@ x-airflow-common: &airflow-common
   volumes:
     - ./dags:/opt/airflow/dags
     - ./src:/opt/airflow/src
+    - ./dbt:/opt/airflow/dbt
     - ./data/duckdb:/opt/datagate/duckdb
     - airflow-logs:/opt/airflow/logs
+    - ./.env:/opt/airflow/.env
   depends_on:
     postgres:
       condition: service_healthy
@@ -135,8 +139,9 @@ services:
     healthcheck:
       test: ["CMD-SHELL", "/opt/kafka/bin/kafka-topics.sh --bootstrap-server localhost:9092 --list || exit 1"]
       interval: 30s
-      timeout: 10s
-      retries: 5
+      timeout: 30s
+      retries: 10
+      start_period: 60s
     restart: unless-stopped
   # -------------------------------------------------------------------------
   # Kafka UI — visual dashboard at http://localhost:8090
