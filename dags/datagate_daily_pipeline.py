@@ -9,10 +9,16 @@ from airflow import DAG
 from airflow.operators.python import PythonOperator
 from airflow.operators.bash import BashOperator
 from airflow.utils.dates import days_ago
+from airflow.models import Variable
 from datetime import datetime, timedelta
 import sys
 import os
-
+os.environ["OPENROUTER_API_KEY"] = Variable.get("OPENROUTER_API_KEY", default_var="")
+os.environ["NEWSAPI_KEY"] = Variable.get("NEWSAPI_KEY", default_var="")
+os.environ["GEMINI_API_KEY"] = Variable.get("GEMINI_API_KEY", default_var="")
+os.environ["MINIO_ENDPOINT"] = "http://minio:9000"
+os.environ["MINIO_ACCESS_KEY"] = "datagate"
+os.environ["MINIO_SECRET_KEY"] = "datagate123"
 sys.path.insert(0, '/opt/airflow')
 
 default_args = {
