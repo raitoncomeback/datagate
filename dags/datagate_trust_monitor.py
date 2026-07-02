@@ -35,7 +35,7 @@ with DAG(
         import duckdb
         from loguru import logger
 
-        conn = duckdb.connect('data/duckdb/datagate.db', read_only=True)
+        conn = duckdb.connect('/opt/datagate/duckdb/datagate.db', read_only=True)
 
         scores = conn.execute("""
             SELECT
@@ -80,7 +80,7 @@ with DAG(
         from datetime import datetime, timezone
         from loguru import logger
 
-        conn = duckdb.connect('data/duckdb/datagate.db')
+        conn = duckdb.connect('/opt/datagate/duckdb/datagate.db')
 
         scores = conn.execute("""
             SELECT source, trust_score, is_blocked
@@ -122,7 +122,7 @@ with DAG(
         import duckdb
         from loguru import logger
 
-        conn = duckdb.connect('data/duckdb/datagate.db', read_only=True)
+        conn = duckdb.connect('/opt/datagate/duckdb/datagate.db', read_only=True)
 
         blocked = conn.execute("""
             SELECT source, trust_score, block_reason
