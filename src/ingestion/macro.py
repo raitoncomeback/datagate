@@ -117,8 +117,9 @@ def run():
 
     except Exception as e:
         log_pipeline_run(run_id, "macro", 0, "failed", str(e))
-        logger.error(f"Macro ingestor failed: {e}")
-        raise
+        logger.warning(f"Macro ingestor failed (non-blocking): {e}")
+        # Don't raise — macro failures shouldn't block the pipeline
+        # RBI website timeouts are common and the gate runs without macro data
 
 
 if __name__ == "__main__":

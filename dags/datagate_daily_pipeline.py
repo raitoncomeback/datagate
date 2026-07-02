@@ -58,4 +58,5 @@ with DAG(
         ),
     )
 
-    t_stocks >> t_news >> t_macro >> t_gate >> t_enrich >> t_dbt
+    # Stocks and news run sequentially, macro runs in parallel
+[t_stocks >> t_news, t_macro] >> t_gate >> t_enrich >> t_dbt
